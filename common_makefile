@@ -1,0 +1,176 @@
+#!/usr/bin/make -f
+
+SHELL=/bin/bash
+
+-include project.mk
+
+# this is the env variable to tell us how many processors on this node
+# we get
+ifdef PBS_NUM_PPN
+CORES=$(PBS_NUM_PPN)
+else
+CORES=8
+endif
+
+### module is how the biocluster loads specific versions; if we're not
+### running there, we'll assume the correct version is installed and
+### just echo what we're loading
+ifdef MODULEPATH
+MODULE=module
+else
+MODULE=echo
+endif
+
+SPECIES?=homo_sapiens
+
+REFERENCE_DIR?=
+GTF?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.82.gtf
+FASTA?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.dna.toplevel.fa
+
+STAR_INDEX_DIR?=$(REFERENCE_DIR)$(SPECIES)_star/
+STAR_INDEX_OPTIONS?=
+
+REMOTE_FILES=$(FASTA).gz $(GTF).gz
+
+
+TRIMMED_FASTQ_FILES=$(patsubst %.fastq.gz,%_trimmed.fastq.gz,$(FASTQ_FILES))
+
+UNTRIMMED_FASTQC_ANALYSIS_FILES=$(patsubst %.fastq.gz,%_fastqc.html,$(FASTQ_FILES))
+
+TRIMMED_FASTQC_ANALYSIS_FILES=$(patsubst %.fastq.gz,%_fastqc.html,$(TRIMMED_FASTQ_FILES))
+
+FASTQC_ANALYSIS_FILES=$(UNTRIMMED_FASTQC_ANALYSIS_FILES) $(TRIMMED_FASTQC_ANALYSIS_FILES)
+
+# we need to use a comma in a rule below, so this handles that
+# escaping.
+comma=,
+
+call: $(FPKM_ANALYSIS_FILES)
+
+%_genes.fpkm_tracking %_isoforms.fpkm_tracking %_skipped.gtf %_transcripts.gtf: %_star.bam $(GTF)
+	mkdir -p $(*)_cufflinks;
+	$(MODULE) load cufflinks/2.2.1; \
+	cufflinks -o $(*)_cufflinks -p $(CORES) -G $(wordlist 2,2,$^) $<
+	for file in genes.fpkm_tracking isoforms.fpkm_tracking skipped.gtf transcripts.gtf; do \
+		mv $(*)_cufflinks/$${file} $(*)_$${file}; \
+	done;
+	rm $(*)_cufflinks -rf;
+
+fastqc: $(FASTQC_ANALYSIS_FILES)
+untrimmed-fastqc: $(UNTRIMMED_FASTQC_ANALYSIS_FILES)
+trimmed-fastqc: $(TRIMMED_FASTQC_ANALYSIS_FILES)
+
+$(FASTQC_ANALYSIS_FILES): %_fastqc.html: %.fastq.gz
+	$(MODULE) load fastqc/0.11.2; \
+	fastqc -t $(CORES) $<
+
+alignment: $(BAM_ANALYSIS_FILES)
+
+
+star_indexes: $(STAR_INDEX_DIR)/SA
+$(STAR_INDEX_DIR)/SA: $(FASTA)
+	$(MODULE) load STAR/2.4.2a; \
+	mkdir -p $(STAR_INDEX_DIR); \
+	STAR --genomeFastaFiles  $(FASTA) \
+		--runMode genomeGenerate \
+		$(STAR_INDEX_OPTIONS) \
+		--limitGenomeGenerateRAM 128849018880 \
+		--runThreadN $(CORES) \
+		--genomeDir $(STAR_INDEX_DIR)
+
+STAR_OPTIONS?=
+
+ifeq ($(NREADS),1)
+%_star.bam: %_trimmed.fastq.gz $(STAR_INDEX_DIR)/SA
+else
+%_star.bam: %_1_trimmed.fastq.gz %_2_trimmed.fastq.gz $(STAR_INDEX_DIR)/SA
+endif
+	$(MODULE) load STAR/2.4.2a; \
+	mkdir -p $(*)_star; \
+	STAR --outFileNamePrefix $(*)_star/ \
+		--outSAMtype BAM SortedByCoordinate \
+		--runThreadN $(CORES) \
+        --outSAMstrandField intronMotif \
+		--genomeDir $(STAR_INDEX_DIR) \
+		$(STAR_OPTIONS) \
+		--readFilesCommand "gzip -dc" \
+		--readFilesIn $(if $(filter-out $(NREADS),2),$(wordlist 1,1,$^),$(wordlist 1,1,$^)$(comma)$(wordlist 2,2,$^))
+	ln $(*)_star/Aligned.sortedByCoord.out.bam $@ -sf
+
+trim: $(TRIMMED_FASTQ_FILES)
+
+# This is the directory where the trimmomatic adapters are kept
+ifdef MODULEPATH
+TRIMMOMATIC_FASTA_PATH?=/home/apps/trimmomatic/trimmomatic-0.33/adapters
+TRIMMOMATIC_PE=java org.usadellab.trimmomatic.TrimmomaticPE
+TRIMMOMATIC_SE=java org.usadellab.trimmomatic.TrimmomaticSE
+else
+TRIMMOMATIC_PE=TrimmomaticPE
+TRIMMOMATIC_SE=TrimmomaticSE
+TRIMMOMATIC_FASTA_PATH?=/usr/share/trimmomatic
+endif
+
+## this is the right set of adapters for the mouse sequences which
+## have tons of adapter dimers and relatively bad short reads
+TRIMMOMATIC_OPTIONS?=ILLUMINACLIP:$(TRIMMOMATIC_FASTA_PATH)/TruSeq2-SE.fa:2:20:10
+TRIMMOMATIC_QUALITY?=
+
+ifeq ($(NREADS),1)
+$(TRIMMED_FASTQ_FILES): %_trimmed.fastq.gz: %.fastq.gz
+	$(MODULE) load trimmomatic/0.33; \
+	$(TRIMMOMATIC_SE) \
+		-threads $(CORES) \
+		$(TRIMMOMATIC_QUALITY) \
+		$< $@ \
+		$(TRIMMOMATIC_OPTIONS);
+else
+%_1_trimmed.fastq.gz %_2_trimmed.fastq.gz: %_1.fastq.gz %_2.fastq.gz
+	$(MODULE) load trimmomatic/0.33; \
+	$(TRIMMOMATIC_PE) \
+		-threads $(CORES) \
+		$(TRIMMOMATIC_QUALITY) \
+		$(wordlist 1,1,$^) $(wordlist 2,2,$^) \
+		$(*)_1_trimmed.fastq.gz /dev/null \
+		$(*)_2_trimmed.fastq.gz /dev/null \
+		$(TRIMMOMATIC_OPTIONS);
+endif
+
+$(FASTA): $(FASTA).gz
+	gzip -dc $< > $@
+
+$(GTF): $(GTF).gz
+	gzip -dc $< > $@
+
+remote_files: $(REMOTE_FILES)
+
+fasta: $(FASTA)
+
+gtf: $(GTF)
+
+$(FASTA).gz:
+	mkdir -p $(dir $@)
+	rsync -avP "rsync://ftp.ensembl.org/ensembl/pub/release-82/fasta/$(SPECIES)/dna/$(notdir $(FASTA)).gz" $@
+
+$(GTF).gz:
+	mkdir -p $(dir $@)
+	rsync -avP "rsync://ftp.ensembl.org/ensembl/pub/release-82/gtf/$(SPECIES)/$(notdir $(GTF)).gz" $@
+
+
+## this file contains a variable that describes how to connect to the
+## cluster host where I ran the analyses and will retreive them onto
+## the local host for analysis
+-include cluster_host.mk
+
+get_results:
+	rsync -avmP \
+		--include '**_genes.fpkm_tracking' \
+		--include '**_isoforms.fpkm_tracking' \
+		--include '**_star/Log.final.out' \
+		--include '**trinity_diamond.txt' \
+		--include '**_trinity_align_rsem_isoforms.txt' \
+        --include '**_fastqc.html' \
+        --include '**_fastqc.zip' \
+        --include '**/' \
+	    --exclude '**' \
+		$(CLUSTER_HOST)/ .;
+
