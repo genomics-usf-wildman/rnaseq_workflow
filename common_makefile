@@ -137,6 +137,11 @@ else
 		$(TRIMMOMATIC_OPTIONS);
 endif
 
+## this rule generates bam indexes in case you need to subset the bam
+%.bam.bai: %.bam
+	$(MODULE) load samtools; \
+	samtools index $<
+
 $(FASTA): $(FASTA).gz
 	gzip -dc $< > $@
 
