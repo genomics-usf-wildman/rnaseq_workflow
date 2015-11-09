@@ -30,6 +30,8 @@ FASTA?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.dna.toplevel.fa
 STAR_INDEX_DIR?=$(REFERENCE_DIR)$(SPECIES)_star/
 STAR_INDEX_OPTIONS?=
 
+CUFFLINKS_OPTIONS?=
+
 REMOTE_FILES=$(FASTA).gz $(GTF).gz
 
 
@@ -50,7 +52,7 @@ call: $(FPKM_ANALYSIS_FILES)
 %_genes.fpkm_tracking %_isoforms.fpkm_tracking %_skipped.gtf %_transcripts.gtf: %_star.bam $(GTF)
 	mkdir -p $(*)_cufflinks;
 	$(MODULE) load cufflinks/2.2.1; \
-	cufflinks -o $(*)_cufflinks -p $(CORES) -G $(wordlist 2,2,$^) $<
+	cufflinks -o $(*)_cufflinks -p $(CORES) $(CUFFLINKS_OPTIONS) -G $(wordlist 2,2,$^) $<
 	for file in genes.fpkm_tracking isoforms.fpkm_tracking skipped.gtf transcripts.gtf; do \
 		mv $(*)_cufflinks/$${file} $(*)_$${file}; \
 	done;
