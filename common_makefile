@@ -31,7 +31,6 @@ FASTA?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.dna.toplevel.fa
 STAR_INDEX_DIR?=$(REFERENCE_DIR)$(SPECIES)_star/
 STAR_INDEX_OPTIONS?=
 
-CUFFLINKS_OPTIONS?=
 
 REMOTE_FILES=$(FASTA).gz $(GTF).gz
 
@@ -44,20 +43,45 @@ TRIMMED_FASTQC_ANALYSIS_FILES=$(patsubst %.fastq.gz,%_fastqc.html,$(TRIMMED_FAST
 
 FASTQC_ANALYSIS_FILES=$(UNTRIMMED_FASTQC_ANALYSIS_FILES) $(TRIMMED_FASTQC_ANALYSIS_FILES)
 
+ifdef USE_TRINITY
+PROTEIN_ALIGNMENT_SPECIES?=$(ALIGNMENT_SPECIES)
+PROTEIN_ALIGNMENT_FASTA?=$(patsubst %.dna.toplevel.fa,%.pep.all.fa,$(FASTA))
+REMOTE_FILES:=$(REMOTE_FILES) $(PROTEIN_ALIGNMENT_FASTA)
+
+CUFFLINKS_OPTIONS?=--max-bundle-frags=4000000 \
+		--min-frags-per-transfrag 2
+endif
+
+CUFFLINKS_OPTIONS?=
+
 # we need to use a comma in a rule below, so this handles that
-# escaping.
-comma=,
+# escaping
+comma:=,
+empty:=
+space:= $(empty) $(empty)
 
 call: $(FPKM_ANALYSIS_FILES)
 
-%_genes.fpkm_tracking %_isoforms.fpkm_tracking %_skipped.gtf %_transcripts.gtf: %_star.bam $(GTF)
+ifdef USE_TRINITY
+%_genes.fpkm_tracking %_isoforms.fpkm_tracking %_skipped.gtf %_transcripts.gtf: %_star.bam
 	mkdir -p $(*)_cufflinks;
 	$(MODULE) load cufflinks/2.2.1; \
-	cufflinks -o $(*)_cufflinks -p $(CORES) $(CUFFLINKS_OPTIONS) -G $(wordlist 2,2,$^) $<
+	cufflinks -o $(*)_cufflinks $(CUFFLINKS_OPTIONS) \
+		-p $(CORES) $<
 	for file in genes.fpkm_tracking isoforms.fpkm_tracking skipped.gtf transcripts.gtf; do \
 		mv $(*)_cufflinks/$${file} $(*)_$${file}; \
 	done;
 	rm $(*)_cufflinks -rf;
+else
+%_genes.fpkm_tracking %_isoforms.fpkm_tracking %_skipped.gtf %_transcripts.gtf: %_star.bam $(GTF)
+	mkdir -p $(*)_cufflinks;
+	$(MODULE) load cufflinks/2.2.1; \
+	cufflinks -o $(*)_cufflinks $(CUFFLINKS_OPTIONS) -p $(CORES) -G $(wordlist 2,2,$^) $<
+	for file in genes.fpkm_tracking isoforms.fpkm_tracking skipped.gtf transcripts.gtf; do \
+		mv $(*)_cufflinks/$${file} $(*)_$${file}; \
+	done;
+	rm $(*)_cufflinks -rf;
+endif
 
 fastqc: $(FASTQC_ANALYSIS_FILES)
 untrimmed-fastqc: $(UNTRIMMED_FASTQC_ANALYSIS_FILES)
@@ -69,12 +93,19 @@ $(FASTQC_ANALYSIS_FILES): %_fastqc.html: %.fastq.gz
 
 alignment: $(BAM_ANALYSIS_FILES)
 
+ifdef USE_TRINITY
+GENOME_FASTA=$(SPECIES)_trinity.Trinity.fasta
+STAR_INDEX_OPTIONS?=--genomeChrBinNbits 10
+else
+GENOME_FASTA=$(FASTA)
+STAR_INDEX_OPTIONS?=
+endif
 
 star_indexes: $(STAR_INDEX_DIR)/SA
 $(STAR_INDEX_DIR)/SA: $(FASTA)
 	$(MODULE) load STAR/2.4.2a; \
 	mkdir -p $(STAR_INDEX_DIR); \
-	STAR --genomeFastaFiles  $(FASTA) \
+	STAR --genomeFastaFiles  $(GENOME_FASTA) \
 		--runMode genomeGenerate \
 		$(STAR_INDEX_OPTIONS) \
 		--limitGenomeGenerateRAM 128849018880 \
@@ -136,6 +167,63 @@ else
 		$(*)_1_trimmed.fastq.gz /dev/null \
 		$(*)_2_trimmed.fastq.gz /dev/null \
 		$(TRIMMOMATIC_OPTIONS);
+endif
+
+ifdef USE_TRINITY
+trinity: $(SPECIES)_trinity.Trinity.fasta
+
+TRINITY_OPTIONS?=--max_memory 20G
+ifeq ($(NREADS),1)
+TRINITY_FASTQ_ARGUMENTS=--single $(subst $(space),$(comma),$(strip $(FASTQ_FILES)))
+else
+TRINITY_FASTQ_ARGUMENTS= \
+	--left $(subst $(space),$(comma),
+	$(strip $(filter %_1_trimmed.fastq.gz,$(FASTQ_FILES))) \
+	--right $(subst $(space),$(comma),
+	$(strip $(filter %_2_trimmed.fastq.gz,$(FASTQ_FILES)))
+endif
+$(SPECIES)_trinity.Trinity.fasta: $(FASTQ_FILES)
+	$(MODULE) load samtools/0.1.19; \
+	$(MODULE) load trinityrnaseq/2.2.0; \
+	Trinity --seqType fq \
+	$(TRINITY_FASTQ_ARGUMENTS) \
+	--CPU $(CORES) --output $(SPECIES)_trinity \
+	$(TRINITY_OPTIONS)
+	mv $(SPECIES)_trinity/Trinity.fasta $@
+
+
+$(PROTEIN_ALIGNMENT_SPECIES)_diamond.dmnd: $(PROTEIN_ALIGNMENT_FASTA)
+	$(MODULE) load diamond/0.7.9 ; \
+	diamond makedb --threads $(CORES) \
+		--in $(PROTEIN_ALIGNMENT_FASTA) \
+		--db $(PROTEIN_ALIGNMENT_SPECIES)_diamond;
+
+$(PROTEIN_ALIGNMENT_SPECIES)_diamond.dmnd: $(PROTEIN_ALIGNMENT_FASTA)
+	$(MODULE) load diamond/0.7.9 ; \
+	diamond makedb --threads $(CORES) \
+		--in $(PROTEIN_ALIGNMENT_FASTA) \
+		--db $(PROTEIN_ALIGNMENT_SPECIES)_diamond;
+
+
+$(SPECIES)_trinity_diamond.daa: $(SPECIES)_trinity.Trinity.fasta \
+	$(PROTEIN_ALIGNMENT_SPECIES)_diamond.dmnd
+	$(MODULE) load diamond/0.7.9 ; \
+	diamond blastx --db $(PROTEIN_ALIGNMENT_SPECIES)_diamond \
+		--threads $(CORES) \
+		--query $(SPECIES)_trinity.Trinity.fasta \
+        --daa $(SPECIES)_trinity_diamond
+
+diamond: $(SPECIES)_trinity_diamond.txt
+
+$(SPECIES)_trinity_diamond.txt: $(SPECIES)_trinity_diamond.daa
+	$(MODULE) load diamond/0.7.9 ; \
+	diamond view --threads $(CORES) --daa $< > $@
+
+$(PROTEIN_ALIGNMENT_FASTA).gz:
+	rsync -avP "rsync://ftp.ensembl.org/ensembl/pub/release-$(ENSEMBL_RELEASE)/fasta/$(PROTEIN_ALIGNMENT_SPECIES)/pep/$(PROTEIN_ALIGNMENT_FASTA).gz" $@
+
+$(PROTEIN_ALIGNMENT_FASTA): $(PROTEIN_ALIGNMENT_FASTA).gz
+	gzip -dc $< > $@
 endif
 
 ## this rule generates bam indexes in case you need to subset the bam
