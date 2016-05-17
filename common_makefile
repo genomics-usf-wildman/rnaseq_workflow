@@ -24,7 +24,8 @@ endif
 SPECIES?=homo_sapiens
 
 REFERENCE_DIR?=
-GTF?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.82.gtf
+ENSEMBL_RELEASE?=82
+GTF?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.$(ENSEMBL_RELEASE).gtf
 FASTA?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.dna.toplevel.fa
 
 STAR_INDEX_DIR?=$(REFERENCE_DIR)$(SPECIES)_star/
@@ -156,11 +157,11 @@ gtf: $(GTF)
 
 $(FASTA).gz:
 	mkdir -p $(dir $@)
-	rsync -avP "rsync://ftp.ensembl.org/ensembl/pub/release-82/fasta/$(SPECIES)/dna/$(notdir $(FASTA)).gz" $@
+	rsync -avP "rsync://ftp.ensembl.org/ensembl/pub/release-$(ENSEMBL_RELEASE)/fasta/$(SPECIES)/dna/$(notdir $(FASTA)).gz" $@
 
 $(GTF).gz:
 	mkdir -p $(dir $@)
-	rsync -avP "rsync://ftp.ensembl.org/ensembl/pub/release-82/gtf/$(SPECIES)/$(notdir $(GTF)).gz" $@
+	rsync -avP "rsync://ftp.ensembl.org/ensembl/pub/release-$(ENSEMBL_RELEASE)/gtf/$(SPECIES)/$(notdir $(GTF)).gz" $@
 
 
 ## this file contains a variable that describes how to connect to the
