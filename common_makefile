@@ -144,8 +144,7 @@ TRIMMOMATIC_SE=TrimmomaticSE
 TRIMMOMATIC_FASTA_PATH?=/usr/share/trimmomatic
 endif
 
-## this is the right set of adapters for the mouse sequences which
-## have tons of adapter dimers and relatively bad short reads
+## set the clip options for trimmomatic
 TRIMMOMATIC_OPTIONS?=ILLUMINACLIP:$(TRIMMOMATIC_FASTA_PATH)/TruSeq2-SE.fa:2:20:10
 TRIMMOMATIC_QUALITY?=
 
