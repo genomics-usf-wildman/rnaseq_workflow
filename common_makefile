@@ -173,15 +173,12 @@ trinity: $(SPECIES)_trinity.Trinity.fasta
 
 TRINITY_OPTIONS?=--max_memory 20G
 ifeq ($(NREADS),1)
-TRINITY_FASTQ_ARGUMENTS=--single $(subst $(space),$(comma),$(strip $(FASTQ_FILES)))
+TRINITY_FASTQ_ARGUMENTS=--single $(subst $(space),$(comma),$(strip $(TRIMMED_FASTQ_FILES)))
 else
-TRINITY_FASTQ_ARGUMENTS= \
-	--left $(subst $(space),$(comma),
-	$(strip $(filter %_1_trimmed.fastq.gz,$(FASTQ_FILES))) \
-	--right $(subst $(space),$(comma),
-	$(strip $(filter %_2_trimmed.fastq.gz,$(FASTQ_FILES)))
+TRINITY_FASTQ_ARGUMENTS= --left $(subst $(space),$(comma),$(strip $(filter %_1_trimmed.fastq.gz,$(TRIMMED_FASTQ_FILES)))) --right $(subst $(space),$(comma),$(strip $(filter %_2_trimmed.fastq.gz,$(TRIMMED_FASTQ_FILES))))
 endif
-$(SPECIES)_trinity.Trinity.fasta: $(FASTQ_FILES)
+
+$(SPECIES)_trinity.Trinity.fasta: $(TRIMMED_FASTQ_FILES)
 	$(MODULE) load samtools/0.1.19; \
 	$(MODULE) load trinityrnaseq/2.2.0; \
 	Trinity --seqType fq \
