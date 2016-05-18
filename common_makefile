@@ -102,7 +102,7 @@ STAR_INDEX_OPTIONS?=
 endif
 
 star_indexes: $(STAR_INDEX_DIR)/SA
-$(STAR_INDEX_DIR)/SA: $(FASTA)
+$(STAR_INDEX_DIR)/SA: $(GENOME_FASTA)
 	$(MODULE) load STAR/2.4.2a; \
 	mkdir -p $(STAR_INDEX_DIR); \
 	STAR --genomeFastaFiles  $(GENOME_FASTA) \
