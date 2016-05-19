@@ -68,7 +68,30 @@ comma:=,
 empty:=
 space:= $(empty) $(empty)
 
-call: $(FPKM_ANALYSIS_FILES)
+# default rule
+.DEFAULT:=all
+all: call
+
+# these rules are the rules that you might want to call separately
+call: $(FPKM_GENES_ANALYSIS_FILES)
+
+fastqc: $(FASTQC_ANALYSIS_FILES)
+
+untrimmed-fastqc: $(UNTRIMMED_FASTQC_ANALYSIS_FILES)
+
+trimmed-fastqc: $(TRIMMED_FASTQC_ANALYSIS_FILES)
+
+alignment: $(STAR_ALIGNMENT_FILES)
+
+star_indexes: $(STAR_INDEX_DIR)/SA
+
+trim: $(TRIMMED_FASTQ_FILES)
+
+remote_files: $(REMOTE_FILES)
+
+fasta: $(FASTA)
+
+gtf: $(GTF)
 
 ifdef USE_TRINITY
 %_genes.fpkm_tracking %_isoforms.fpkm_tracking %_skipped.gtf %_transcripts.gtf: %_star.bam
@@ -91,15 +114,9 @@ else
 	rm $(*)_cufflinks -rf;
 endif
 
-fastqc: $(FASTQC_ANALYSIS_FILES)
-untrimmed-fastqc: $(UNTRIMMED_FASTQC_ANALYSIS_FILES)
-trimmed-fastqc: $(TRIMMED_FASTQC_ANALYSIS_FILES)
-
 $(FASTQC_ANALYSIS_FILES): %_fastqc.html: %.fastq.gz
 	$(MODULE) load fastqc/0.11.2; \
 	fastqc -t $(CORES) $<
-
-alignment: $(BAM_ANALYSIS_FILES)
 
 ifdef USE_TRINITY
 GENOME_FASTA=$(SPECIES)_trinity.Trinity.fasta
@@ -112,7 +129,6 @@ endif
 # use 150G, which is echo $((1024*1024*1024*150))
 STAR_INDEX_MEMORY_LIMIT?=161061273600
 
-star_indexes: $(STAR_INDEX_DIR)/SA
 $(STAR_INDEX_DIR)/SA: $(GENOME_FASTA)
 	$(MODULE) load STAR/2.4.2a; \
 	mkdir -p $(STAR_INDEX_DIR); \
@@ -141,8 +157,6 @@ endif
 		--readFilesCommand "gzip -dc" \
 		--readFilesIn $(if $(filter-out $(NREADS),2),$(wordlist 1,1,$^),$(wordlist 1,1,$^)$(comma)$(wordlist 2,2,$^))
 	ln $(*)_star/Aligned.sortedByCoord.out.bam $@ -sf
-
-trim: $(TRIMMED_FASTQ_FILES)
 
 # This is the directory where the trimmomatic adapters are kept
 ifdef MODULEPATH
@@ -243,12 +257,6 @@ $(FASTA): $(FASTA).gz
 
 $(GTF): $(GTF).gz
 	gzip -dc $< > $@
-
-remote_files: $(REMOTE_FILES)
-
-fasta: $(FASTA)
-
-gtf: $(GTF)
 
 $(FASTA).gz:
 	mkdir -p $(dir $@)
