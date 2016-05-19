@@ -50,6 +50,16 @@ CUFFLINKS_OPTIONS?=--max-bundle-frags=4000000 \
 		--min-frags-per-transfrag 2
 endif
 
+ifeq ($(NREADS),1)
+FPKM_GENES_ANALYSIS_FILES=$(patsubst %.fastq.gz,%_genes.fpkm_tracking,$(FASTQ_FILES))
+STAR_ALIGNMENT_FILES=$(patsubst %.fastq.gz,%_star.bam,$(FASTQ_FILES))
+else
+FPKM_GENES_ANALYSIS_FILES=$(patsubst %_1.fastq.gz,%_genes.fpkm_tracking,
+	$(filter %_1.fastq.gz,$(FASTQ_FILES)))
+STAR_ALIGNMENT_FILES=$(patsubst %_1.fastq.gz,%_star.bam,
+	$(filter %_1.fastq.gz,$(FASTQ_FILES)))
+endif
+
 CUFFLINKS_OPTIONS?=
 
 # we need to use a comma in a rule below, so this handles that
