@@ -29,8 +29,6 @@ GTF?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.$(ENSEMBL_RELEASE).gtf
 FASTA?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.dna.toplevel.fa
 
 STAR_INDEX_DIR?=$(REFERENCE_DIR)$(SPECIES)_star/
-STAR_INDEX_OPTIONS?=
-
 
 REMOTE_FILES=$(FASTA).gz $(GTF).gz
 
@@ -95,11 +93,14 @@ alignment: $(BAM_ANALYSIS_FILES)
 
 ifdef USE_TRINITY
 GENOME_FASTA=$(SPECIES)_trinity.Trinity.fasta
-STAR_INDEX_OPTIONS?=--genomeChrBinNbits 10
+STAR_INDEX_OPTIONS?=--genomeChrBinNbits 9
 else
 GENOME_FASTA=$(FASTA)
 STAR_INDEX_OPTIONS?=
 endif
+
+# use 150G, which is echo $((1024*1024*1024*150))
+STAR_INDEX_MEMORY_LIMIT?=161061273600
 
 star_indexes: $(STAR_INDEX_DIR)/SA
 $(STAR_INDEX_DIR)/SA: $(GENOME_FASTA)
@@ -108,7 +109,7 @@ $(STAR_INDEX_DIR)/SA: $(GENOME_FASTA)
 	STAR --genomeFastaFiles  $(GENOME_FASTA) \
 		--runMode genomeGenerate \
 		$(STAR_INDEX_OPTIONS) \
-		--limitGenomeGenerateRAM 128849018880 \
+		--limitGenomeGenerateRAM $(STAR_INDEX_MEMORY_LIMIT) \
 		--runThreadN $(CORES) \
 		--genomeDir $(STAR_INDEX_DIR)
 
