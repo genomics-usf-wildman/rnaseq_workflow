@@ -121,7 +121,7 @@ GENOME_FASTA=$(SPECIES)_trinity.Trinity.fasta
 STAR_INDEX_OPTIONS?=--genomeChrBinNbits 9
 else
 GENOME_FASTA=$(FASTA)
-STAR_INDEX_OPTIONS?=
+STAR_INDEX_OPTIONS?=--sjdbGTFfile $(GTF)
 endif
 
 # use 150G, which is echo $((1024*1024*1024*150))
@@ -137,12 +137,19 @@ $(STAR_INDEX_DIR)/SA: $(GENOME_FASTA)
 		--runThreadN $(CORES) \
 		--genomeDir $(STAR_INDEX_DIR)
 
+ifdef USE_TRINITY
+STAR_ALIGN_DEPS=$(STAR_INDEX_DIR)/SA
 STAR_OPTIONS?=
+else
+STAR_ALIGN_DEPS=$(STAR_INDEX_DIR)/SA $(GTF)
+STAR_OPTIONS?=--sjdbGTFfile $(GTF)
+endif
+
 
 ifeq ($(NREADS),1)
-%_star.bam: %_trimmed.fastq.gz $(STAR_INDEX_DIR)/SA
+%_star.bam: %_trimmed.fastq.gz $(STAR_ALIGN_DEPS)
 else
-%_star.bam: %_1_trimmed.fastq.gz %_2_trimmed.fastq.gz $(STAR_INDEX_DIR)/SA
+%_star.bam: %_1_trimmed.fastq.gz %_2_trimmed.fastq.gz $(STAR_ALIGN_DEPS)
 endif
 	$(MODULE) load STAR/2.5.1b; \
 	mkdir -p $(*)_star; \
