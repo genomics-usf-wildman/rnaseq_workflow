@@ -128,7 +128,7 @@ endif
 STAR_INDEX_MEMORY_LIMIT?=161061273600
 
 $(STAR_INDEX_DIR)/SA: $(GENOME_FASTA)
-	$(MODULE) load STAR/2.4.2a; \
+	$(MODULE) load STAR/2.5.1b; \
 	mkdir -p $(STAR_INDEX_DIR); \
 	STAR --genomeFastaFiles  $(GENOME_FASTA) \
 		--runMode genomeGenerate \
@@ -144,7 +144,7 @@ ifeq ($(NREADS),1)
 else
 %_star.bam: %_1_trimmed.fastq.gz %_2_trimmed.fastq.gz $(STAR_INDEX_DIR)/SA
 endif
-	$(MODULE) load STAR/2.4.2a; \
+	$(MODULE) load STAR/2.5.1b; \
 	mkdir -p $(*)_star; \
 	STAR --outFileNamePrefix $(*)_star/ \
 		--outSAMtype BAM SortedByCoordinate \
