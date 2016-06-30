@@ -24,7 +24,7 @@ endif
 SPECIES?=homo_sapiens
 
 REFERENCE_DIR?=
-ENSEMBL_RELEASE?=82
+ENSEMBL_RELEASE?=84
 GTF?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.$(ENSEMBL_RELEASE).gtf
 FASTA?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.dna.toplevel.fa
 
