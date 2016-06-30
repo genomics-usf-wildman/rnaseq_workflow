@@ -142,7 +142,7 @@ STAR_ALIGN_DEPS=$(STAR_INDEX_DIR)/SA
 STAR_OPTIONS?=
 else
 STAR_ALIGN_DEPS=$(STAR_INDEX_DIR)/SA $(GTF)
-STAR_OPTIONS?=--sjdbGTFfile $(GTF)
+STAR_OPTIONS?=--sjdbGTFfile $(GTF) --quantMode GeneCounts
 endif
 
 
