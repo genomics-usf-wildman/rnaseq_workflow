@@ -47,7 +47,8 @@ PROTEIN_ALIGNMENT_FASTA?=$(patsubst %.dna.toplevel.fa,%.pep.all.fa,$(FASTA))
 REMOTE_FILES:=$(REMOTE_FILES) $(PROTEIN_ALIGNMENT_FASTA)
 
 CUFFLINKS_OPTIONS?=--max-bundle-frags=4000000 \
-		--min-frags-per-transfrag 2
+		--min-frags-per-transfrag 2 \
+		--max-multiread-fraction 0.99 
 endif
 
 ifeq ($(NREADS),1)
