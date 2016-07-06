@@ -22,6 +22,7 @@ MODULE=echo
 endif
 
 SPECIES?=homo_sapiens
+ALIGNMENT_SPECIES?=$(SPECIES)
 
 REFERENCE_DIR?=
 ENSEMBL_RELEASE?=84
@@ -266,11 +267,11 @@ $(GTF): $(GTF).gz
 
 $(FASTA).gz:
 	mkdir -p $(dir $@)
-	rsync -avP "rsync://ftp.ensembl.org/ensembl/pub/release-$(ENSEMBL_RELEASE)/fasta/$(SPECIES)/dna/$(notdir $(FASTA)).gz" $@
+	rsync -avP "rsync://ftp.ensembl.org/ensembl/pub/release-$(ENSEMBL_RELEASE)/fasta/$(ALIGNMENT_SPECIES)/dna/$(notdir $(FASTA)).gz" $@
 
 $(GTF).gz:
 	mkdir -p $(dir $@)
-	rsync -avP "rsync://ftp.ensembl.org/ensembl/pub/release-$(ENSEMBL_RELEASE)/gtf/$(SPECIES)/$(notdir $(GTF)).gz" $@
+	rsync -avP "rsync://ftp.ensembl.org/ensembl/pub/release-$(ENSEMBL_RELEASE)/gtf/$(ALIGNMENT_SPECIES)/$(notdir $(GTF)).gz" $@
 
 
 ## this file contains a variable that describes how to connect to the
