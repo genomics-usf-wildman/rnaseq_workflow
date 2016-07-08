@@ -17,3 +17,18 @@ NREADS=2
 FASTQ_FILES=file1_1.fastq.gz file1_2.fastq.gz file2_1.fastq.gz file2_2.fastq.gz
 
 # Everything else below is optional
+
+## The species that this data is
+# SPECIES=homo_sapiens
+## The species to align it to; usually the same as $(SPECIES)
+# ALIGNMENT_SPECIES=$(SPECIES)
+
+## GTF and FASTA from Ensembl
+# GTF=$(REFERENCE_DIR)Homo_sapiens.GRCh38.$(ENSEMBL_RELEASE).gtf
+# FASTA=$(REFERENCE_DIR)Homo_sapiens.GRCh38.dna.toplevel.fa
+
+
+## The ensembl release to use
+# ENSEMBL_RELEASE=84
+
+
