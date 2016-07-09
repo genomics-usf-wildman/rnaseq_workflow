@@ -31,4 +31,7 @@ FASTQ_FILES=file1_1.fastq.gz file1_2.fastq.gz file2_1.fastq.gz file2_2.fastq.gz
 ## The ensembl release to use
 # ENSEMBL_RELEASE=84
 
-
+## Whether to strip out patches or not; probably only useful for Homo
+## Sapiens
+# STRIP_PATCHES=1
+# STRIP_PATCHES_SCRIPT=../rnaseq-workflow/strip_patches.pl
