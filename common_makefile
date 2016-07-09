@@ -269,7 +269,7 @@ $(FASTA): $(FASTA).gz $(GTF).gz $(STRIP_PATCHES_SCRIPT)
 	$(STRIP_PATCHES_SCRIPT) \
 		--fasta <(gzip -dc $(FASTA).gz) \
 		--fasta-out $(FASTA) \
-		--gtf $(GTF)
+		--gtf $(GTF) \
 		$(STRIP_PATCHES_OPTIONS)
 else
 $(FASTA): $(FASTA).gz
