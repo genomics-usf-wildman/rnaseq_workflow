@@ -50,6 +50,7 @@ strip_patches.pl
 =cut
 
 
+use IO::File;
 use vars qw($DEBUG);
 
 my %options = (debug           => 0,
