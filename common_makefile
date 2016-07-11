@@ -47,9 +47,9 @@ PROTEIN_ALIGNMENT_SPECIES?=$(ALIGNMENT_SPECIES)
 PROTEIN_ALIGNMENT_FASTA?=$(patsubst %.dna.toplevel.fa,%.pep.all.fa,$(FASTA))
 REMOTE_FILES:=$(REMOTE_FILES) $(PROTEIN_ALIGNMENT_FASTA)
 
-CUFFLINKS_OPTIONS?=--max-bundle-frags=4000000 \
+CUFFLINKS_OPTIONS?=--max-bundle-frags=400000000 \
 		--min-frags-per-transfrag 2 \
-		--max-multiread-fraction 0.99 
+		--max-multiread-fraction 0.99
 endif
 
 ifeq ($(NREADS),1)
@@ -60,7 +60,7 @@ FPKM_GENES_ANALYSIS_FILES=$(patsubst %_1.fastq.gz,%_genes.fpkm_tracking,$(filter
 STAR_ALIGNMENT_FILES=$(patsubst %_1.fastq.gz,%_star.bam,$(filter %_1.fastq.gz,$(FASTQ_FILES)))
 endif
 
-CUFFLINKS_OPTIONS?=
+CUFFLINKS_OPTIONS?=--max-bundle-frags=400000000
 
 # we need to use a comma in a rule below, so this handles that
 # escaping
