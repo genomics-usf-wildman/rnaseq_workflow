@@ -266,6 +266,7 @@ ifdef STRIP_PATCHES
 STRIP_PATCHES_SCRIPT?=./rnaseq_workflow/strip_patches.pl
 STRIP_PATCHES_OPTIONS=--valid-chr=.
 $(FASTA): $(FASTA).gz $(GTF) $(STRIP_PATCHES_SCRIPT)
+	module load perl; \
 	$(STRIP_PATCHES_SCRIPT) \
 		--fasta <(gzip -dc $(FASTA).gz) \
 		--fasta-out $(FASTA) \
