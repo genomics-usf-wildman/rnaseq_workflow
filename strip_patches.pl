@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # strip_patches.pl strips patches out of sequences
 # and is released under the terms of the GNU GPL version 3, or any
 # later version, at your option. See the file README and COPYING for
