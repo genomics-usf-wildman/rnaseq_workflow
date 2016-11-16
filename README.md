@@ -65,23 +65,23 @@ To make the star indexes, run:
 
 To make the untrimmed fastq:
 
-`ls -1 *_?.fastq.gz | sed 's/.fastq.gz/_fastqc.html/' | ~/uiuc_igb_scripts/dqsub --mem 20 --ppn 2 --array xargs make`
+`ls -1 *_?.fastq.gz | sed 's/.fastq.gz/_fastqc.html/' | ~/uiuc_igb_scripts/dqsub --mem 20G --ppn 2 --array xargs make`
 
 At this point, you may need to adjust the trim options in project.mk
 
 To trim and make the trimmed fastqc
 
-`ls -1 *_?.fastq.gz | sed 's/.fastq.gz/_trimed_fastqc.html/' | ~/uiuc_igb_scripts/dqsub --mem 40 --ppn 2 --array xargs make`
+`ls -1 *_?.fastq.gz | sed 's/.fastq.gz/_trimed_fastqc.html/' | ~/uiuc_igb_scripts/dqsub --mem 40G --ppn 2 --array xargs make`
 
 ## Run the star alignment
 
 To run the star alignment:
 
-`ls -1 *_1.fastq.gz | sed 's/.fastq.gz/_star.bam/' | ~/uiuc_igb_scripts/dqsub --mem 200 --ppn 24 --array xargs make`
+`ls -1 *_1.fastq.gz | sed 's/.fastq.gz/_star.bam/' | ~/uiuc_igb_scripts/dqsub --mem 300G --ppn 24 --array xargs make`
 
 ## call the alignment
 
 To call the alignment using cufflinks:
 
-`ls -1 *_1.fastq.gz | sed 's/.fastq.gz/_genes.fpkm_tracking/' | ~/uiuc_igb_scripts/dqsub --mem 40 --ppn 44 --array xargs make`
+`ls -1 *_1.fastq.gz | sed 's/.fastq.gz/_genes.fpkm_tracking/' | ~/uiuc_igb_scripts/dqsub --mem 40G --ppn 4 --array xargs make`
 
