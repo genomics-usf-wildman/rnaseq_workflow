@@ -6,6 +6,10 @@
 # Files should not have spaces in them; make doesn't deal particularly
 # well with spaces.
 
+# If you change an option, don't forget to uncomment (remove the
+# leading #) the line that youv'e changed. Commented lines indicate
+# the defaults
+
 # Required options
 
 # Number of reads per fragment; 2 is paired-end, 1 is unpaired. This
@@ -27,6 +31,10 @@ FASTQ_FILES=file1_1.fastq.gz file1_2.fastq.gz file2_1.fastq.gz file2_2.fastq.gz
 # GTF=$(REFERENCE_DIR)Homo_sapiens.GRCh38.$(ENSEMBL_RELEASE).gtf
 # FASTA=$(REFERENCE_DIR)Homo_sapiens.GRCh38.dna.toplevel.fa
 
+## if you were using mouse, this would be
+# SPECIES=mus_musculus
+# GTF=$(REFERENCE_DIR)Mus_musculus.GRCm38.$(ENSEMBL_RELEASE).gtf
+# FASTA=$(REFERENCE_DIR)Mus_musculus.GRCm38.dna.toplevel.fa
 
 ## The ensembl release to use
 # ENSEMBL_RELEASE=84
