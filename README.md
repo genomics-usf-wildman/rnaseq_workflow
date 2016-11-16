@@ -1,8 +1,8 @@
-RNAseq Workflow
----------------
+# RNAseq Workflow
 
-Directions for Use
-------------------
+
+# Directions for Use
+
 
 To your existing git repository, run:
 
@@ -15,8 +15,7 @@ to add a submodule, then in your directory which contains your fastq files, run:
 
 Now, edit the project.mk which you just created to match your project
 
-Editing `project.mk`
-===================
+## Editing `project.mk`
 
 `project.mk` contains various options which you can set, and has
 comments describing how the options operate.
@@ -41,6 +40,48 @@ directory, then:
 
 will create those symlinks. You may need to modify the sed line as appropriate.
 
-Getting remote files
-====================
+## Getting remote files
+
+In order for the workflow to work, you need the ensembl fasta and gtf
+files. Run `make remote_files` to obtain them.
+
+## Running on a cluster
+
+If you are running on a cluster (say, biocluster), you will need to
+obtain dqsub or write qsub files yourself. You can get dqsub by running:
+
+`git clone http://git.donarmstrong.com/uiuc_igb_scripts.git ~/uiuc_igb_scripts`
+
+The following commands will assume that you have dqsub available; if
+you are running locally, simply omit dqsub.
+
+## Making star indexes
+
+To make the star indexes, run:
+
+`~/uiuc_igb_scripts/dqsub --mem 140G --ppn 12 make star_indexes`
+
+## Run fastqc and trim
+
+To make the untrimmed fastq:
+
+`ls -1 *_?.fastq.gz | sed 's/.fastq.gz/_fastqc.html/' | ~/uiuc_igb_scripts/dqsub --mem 20 --ppn 2 --array xargs make`
+
+At this point, you may need to adjust the trim options in project.mk
+
+To trim and make the trimmed fastqc
+
+`ls -1 *_?.fastq.gz | sed 's/.fastq.gz/_trimed_fastqc.html/' | ~/uiuc_igb_scripts/dqsub --mem 40 --ppn 2 --array xargs make`
+
+## Run the star alignment
+
+To run the star alignment:
+
+`ls -1 *_1.fastq.gz | sed 's/.fastq.gz/_star.bam/' | ~/uiuc_igb_scripts/dqsub --mem 200 --ppn 24 --array xargs make`
+
+## call the alignment
+
+To call the alignment using cufflinks:
+
+`ls -1 *_1.fastq.gz | sed 's/.fastq.gz/_genes.fpkm_tracking/' | ~/uiuc_igb_scripts/dqsub --mem 40 --ppn 44 --array xargs make`
 
