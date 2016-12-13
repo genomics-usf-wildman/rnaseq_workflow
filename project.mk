@@ -36,6 +36,16 @@ FASTQ_FILES=file1_1.fastq.gz file1_2.fastq.gz file2_1.fastq.gz file2_2.fastq.gz
 # GTF=$(REFERENCE_DIR)Mus_musculus.GRCm38.$(ENSEMBL_RELEASE).gtf
 # FASTA=$(REFERENCE_DIR)Mus_musculus.GRCm38.dna.toplevel.fa
 
+### in some cases (more recent mouse genomes) cufflinks cannot handle
+### certain features in the GTF file, and you may need to fix the GTF
+### file. Use the following rule (for mice) to clean that up. See
+### https://github.com/cole-trapnell-lab/cufflinks/issues/77 for the
+### issue which brought this up. (Hopefully fixed in cufflinks
+### versions newer than 2.2.1
+# CUFFLINKS_GTF=$(REFERENCE_DIR)Mus_musculus.GRCm38.$(ENSEMBL_RELEASE)_fixed.gtf
+# $(CUFFLINKS_GTF): $(GTF)
+# 	grep -v '\tSelenocysteine\t' $^ > $@
+
 ## The ensembl release to use
 # ENSEMBL_RELEASE=84
 

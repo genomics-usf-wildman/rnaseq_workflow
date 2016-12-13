@@ -28,6 +28,10 @@ REFERENCE_DIR?=
 ENSEMBL_RELEASE?=84
 GTF?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.$(ENSEMBL_RELEASE).gtf
 FASTA?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.dna.toplevel.fa
+### in some cases, cufflinks can't handle a "real" GTF, and needs a
+### modified one. Write the rule to make the modified GTF and then set
+### CUFFLINKS_GTF in that case.
+CUFFLINKS_GTF?=$(GTF)
 
 STAR_INDEX_DIR?=$(REFERENCE_DIR)$(SPECIES)_star/
 
@@ -104,7 +108,8 @@ ifdef USE_TRINITY
 	done;
 	rm $(*)_cufflinks -rf;
 else
-%_genes.fpkm_tracking %_isoforms.fpkm_tracking %_skipped.gtf %_transcripts.gtf: %_star.bam $(GTF)
+%_genes.fpkm_tracking %_isoforms.fpkm_tracking %_skipped.gtf %_transcripts.gtf: %_star.bam \
+	$(CUFFLINKS_GTF)
 	mkdir -p $(*)_cufflinks;
 	$(MODULE) load cufflinks/2.2.1; \
 	cufflinks -o $(*)_cufflinks $(CUFFLINKS_OPTIONS) -p $(CORES) -G $(wordlist 2,2,$^) $<
