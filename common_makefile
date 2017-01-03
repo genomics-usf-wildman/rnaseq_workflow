@@ -210,6 +210,10 @@ TRIMMOMATIC_OPTIONS?=ILLUMINACLIP:$(TRIMMOMATIC_FASTA_PATH)/TruSeq2-SE.fa:2:20:1
 TRIMMOMATIC_QUALITY?=
 
 ifeq ($(NREADS),1)
+ifdef NOTRIM
+$(TRIMMED_FASTQ_FILES): %_trimmed.fastq.gz: %.fastq.gz
+	cp -l $< $@
+else
 $(TRIMMED_FASTQ_FILES): %_trimmed.fastq.gz: %.fastq.gz
 	$(MODULE) load trimmomatic/0.33; \
 	$(TRIMMOMATIC_SE) \
@@ -217,6 +221,12 @@ $(TRIMMED_FASTQ_FILES): %_trimmed.fastq.gz: %.fastq.gz
 		$(TRIMMOMATIC_QUALITY) \
 		$< $@ \
 		$(TRIMMOMATIC_OPTIONS);
+endif
+else
+ifdef NOTRIM
+%_1_trimmed.fastq.gz %_2_trimmed.fastq.gz: %_1.fastq.gz %_2.fastq.gz
+	cp -l $(wordlist 1,1,$^) $(*)_1_trimmed.fastq.gz
+	cp -l $(wordlist 2,2,$^) $(*)_2_trimmed.fastq.gz
 else
 %_1_trimmed.fastq.gz %_2_trimmed.fastq.gz: %_1.fastq.gz %_2.fastq.gz
 	$(MODULE) load trimmomatic/0.33; \
@@ -227,6 +237,7 @@ else
 		$(*)_1_trimmed.fastq.gz /dev/null \
 		$(*)_2_trimmed.fastq.gz /dev/null \
 		$(TRIMMOMATIC_OPTIONS);
+endif
 endif
 
 ifdef USE_TRINITY

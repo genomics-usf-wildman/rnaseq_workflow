@@ -56,3 +56,6 @@ FASTQ_FILES=file1_1.fastq.gz file1_2.fastq.gz file2_1.fastq.gz file2_2.fastq.gz
 
 # Options for cufflinks; --max-bundle-frags avoids HIDATA errors
 # CUFFLINKS_OPTIONS=--max-bundle-frags=400000000
+
+# If you do not wish to trim, uncomment the following
+# NOTRIM=1
