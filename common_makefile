@@ -97,6 +97,28 @@ fasta: $(FASTA)
 
 gtf: $(GTF)
 
+# these rules use dqsub to submit jobs
+DQSUB?=~/uiuc_igb_scripts/dqsub
+
+submit_trim:
+	echo $(TRIMMED_FASTQ_FILES) | $(DQSUB) --mem 24G --ppn 2 --array xargs make
+
+submit_fastqc:
+	echo $(UNTRIMMED_FASTQC_ANALYSIS_FILES) | $(DQSUB) --mem 24G --ppn 2 --array xargs make
+
+submit_trimmed_fastqc:
+	echo $(TRIMMED_FASTQC_ANALYSIS_FILES) | $(DQSUB) --mem 24G --ppn 2 --array xargs make
+
+submit_star_indexes:
+	$(DQSUB) --mem 240G --ppn 24 make star_indexes
+
+submit_alignment:
+	echo $(STAR_ALIGNMENT_FILES) | $(DQSUB) --mem 300G --ppn 24 --array xargs make
+
+submit_call:
+	echo $(FPKM_GENES_ANALYSIS_FILES) | $(DQSUB) --mem 40G --ppn 4 --array xargs make
+
+
 ifdef USE_TRINITY
 %_genes.fpkm_tracking %_isoforms.fpkm_tracking %_skipped.gtf %_transcripts.gtf: %_star.bam
 	mkdir -p $(*)_cufflinks;
