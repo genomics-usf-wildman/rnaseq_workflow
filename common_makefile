@@ -176,6 +176,7 @@ STAR_ALIGN_DEPS=$(STAR_INDEX_DIR)/SA $(GTF)
 STAR_OPTIONS?=--sjdbGTFfile $(GTF) --quantMode GeneCounts
 endif
 
+GZIP=$(shell which pigz || which gzip)
 
 ifeq ($(NREADS),1)
 %_star.bam: %_trimmed.fastq.gz $(STAR_ALIGN_DEPS)
@@ -190,7 +191,7 @@ endif
         --outSAMstrandField intronMotif \
 		--genomeDir $(STAR_INDEX_DIR) \
 		$(STAR_OPTIONS) \
-		--readFilesCommand "gzip -dc" \
+		--readFilesCommand "$(GZIP) -dc" \
 		--readFilesIn $(if $(filter-out $(NREADS),2),$(wordlist 1,1,$^),$(wordlist 1,1,$^)$(comma)$(wordlist 2,2,$^))
 	ln $(*)_star/Aligned.sortedByCoord.out.bam $@ -sf
 
@@ -291,7 +292,7 @@ $(PROTEIN_ALIGNMENT_FASTA).gz:
 	rsync -avP "rsync://ftp.ensembl.org/ensembl/pub/release-$(ENSEMBL_RELEASE)/fasta/$(PROTEIN_ALIGNMENT_SPECIES)/pep/$(PROTEIN_ALIGNMENT_FASTA).gz" $@
 
 $(PROTEIN_ALIGNMENT_FASTA): $(PROTEIN_ALIGNMENT_FASTA).gz
-	gzip -dc $< > $@
+	$(GZIP) -dc $< > $@
 endif
 
 ## this rule generates bam indexes in case you need to subset the bam
@@ -300,7 +301,7 @@ endif
 	samtools index $<
 
 $(GTF): $(GTF).gz
-	gzip -dc $< > $@
+	$(GZIP) -dc $< > $@
 
 ifdef STRIP_PATCHES
 STRIP_PATCHES_SCRIPT?=./rnaseq_workflow/strip_patches.pl
@@ -308,13 +309,13 @@ STRIP_PATCHES_OPTIONS?=--valid-chr=.
 $(FASTA): $(FASTA).gz $(GTF) $(STRIP_PATCHES_SCRIPT)
 	$(MODULE) load perl; \
 	$(STRIP_PATCHES_SCRIPT) \
-		--fasta <(gzip -dc $(FASTA).gz) \
+		--fasta <($(GZIP) -dc $(FASTA).gz) \
 		--fasta-out $(FASTA) \
 		--gtf $(GTF) \
 		$(STRIP_PATCHES_OPTIONS)
 else
 $(FASTA): $(FASTA).gz
-	gzip -dc $< > $@
+	$(GZIP) -dc $< > $@
 
 endif
 
