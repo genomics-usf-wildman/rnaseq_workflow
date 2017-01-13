@@ -57,11 +57,11 @@ CUFFLINKS_OPTIONS?=--max-bundle-frags=400000000 \
 endif
 
 ifeq ($(NREADS),1)
-FPKM_GENES_ANALYSIS_FILES=$(patsubst %.fastq.gz,%_genes.fpkm_tracking,$(FASTQ_FILES))
-STAR_ALIGNMENT_FILES=$(patsubst %.fastq.gz,%_star.bam,$(FASTQ_FILES))
+FPKM_GENES_ANALYSIS_FILES?=$(patsubst %.fastq.gz,%_genes.fpkm_tracking,$(FASTQ_FILES))
+STAR_ALIGNMENT_FILES?=$(patsubst %.fastq.gz,%_star.bam,$(FASTQ_FILES))
 else
-FPKM_GENES_ANALYSIS_FILES=$(patsubst %_1.fastq.gz,%_genes.fpkm_tracking,$(filter %_1.fastq.gz,$(FASTQ_FILES)))
-STAR_ALIGNMENT_FILES=$(patsubst %_1.fastq.gz,%_star.bam,$(filter %_1.fastq.gz,$(FASTQ_FILES)))
+FPKM_GENES_ANALYSIS_FILES?=$(patsubst %_1.fastq.gz,%_genes.fpkm_tracking,$(filter %_1.fastq.gz,$(FASTQ_FILES)))
+STAR_ALIGNMENT_FILES?=$(patsubst %_1.fastq.gz,%_star.bam,$(filter %_1.fastq.gz,$(FASTQ_FILES)))
 endif
 
 CUFFLINKS_OPTIONS?=--max-bundle-frags=400000000
