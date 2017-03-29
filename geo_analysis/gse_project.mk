@@ -29,19 +29,19 @@ make_srx_dirs: srx_utils.R gse_srx_info.txt
 	$(MODULE) load R; \
 	$(R) $(ROPTS) -f $< --args make_srx_dirs $(wordlist 2,$(words $^),$^)
 
-submit_trimmed_fastqc: $(patsubset %,%-submit_trimmed_fastqc,$(SRX_FILES))
+submit_trimmed_fastqc: $(patsubst %,%-submit_trimmed_fastqc,$(SRX_FILES))
 
-submit_alignment: $(patsubset %,%-submit_alignment,$(SRX_FILES))
+submit_alignment: $(patsubst %,%-submit_alignment,$(SRX_FILES))
 
-submit_call: $(patsubset %,%-submit_call,$(SRX_FILES))
+submit_call: $(patsubst %,%-submit_call,$(SRX_FILES))
 
-$(patsubst %,%-submit_trimmed_fastqc,$(SRX_FILES)): %-submit_trimmed_fastqc: %
+$(patsubst %,%-submit_trimmed_fastqc,$(SRX_FILES)): %-submit_trimmed_fastqc:
 	+make -C $* submit_trimmed_fastqc
 
-$(patsubst %,%-submit_alignment,$(SRX_FILES)): %-submit_alignment: %
+$(patsubst %,%-submit_alignment,$(SRX_FILES)): %-submit_alignment:
 	+make -C $* submit_alignment
 
-$(patsubst %,%-submit_call,$(SRX_FILES)): %-submit_call: %
+$(patsubst %,%-submit_call,$(SRX_FILES)): %-submit_call:
 	+make -C $* submit_call
 
 get_srr: $(patsubst %,%-get_srr,$(SRX_FILES))
