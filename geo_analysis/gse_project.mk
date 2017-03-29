@@ -49,4 +49,4 @@ get_srr: $(patsubst %,%-get_srr,$(SRX_FILES))
 $(patsubst %,%-get_srr,$(SRX_FILES)): %-get_srr: %
 	+make -C $* get_srr
 
-.PHONY: get_srr
+.PHONY: get_srr submit_trimmed_fastqc submit_alignment submit_call
