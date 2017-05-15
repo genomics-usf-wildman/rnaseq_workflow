@@ -126,7 +126,7 @@ submit_call:
 
 # Kallisto submission rules
 submit_kallisto_index:
-	$(DQSUB) --mem 40G --ppn 8 make kallisto_index
+	$(DQSUB) --mem 40G --ppn 1 make kallisto_index
 
 submit_kallisto_call:
 	echo $(KALLISTO_ANALYSIS_FILES) | sed 's/ /\n/g' | \
