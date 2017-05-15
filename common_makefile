@@ -28,6 +28,7 @@ REFERENCE_DIR?=
 ENSEMBL_RELEASE?=84
 GTF?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.$(ENSEMBL_RELEASE).gtf
 FASTA?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.dna.toplevel.fa
+CDNA_FASTA?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.cdna.all.fa
 ### in some cases, cufflinks can't handle a "real" GTF, and needs a
 ### modified one. Write the rule to make the modified GTF and then set
 ### CUFFLINKS_GTF in that case.
@@ -35,7 +36,7 @@ CUFFLINKS_GTF?=$(GTF)
 
 STAR_INDEX_DIR?=$(REFERENCE_DIR)$(SPECIES)_star/
 
-REMOTE_FILES=$(FASTA).gz $(GTF).gz
+REMOTE_FILES=$(FASTA).gz $(GTF).gz $(CDNA_FASTA).gz
 
 
 TRIMMED_FASTQ_FILES=$(patsubst %.fastq.gz,%_trimmed.fastq.gz,$(FASTQ_FILES))
@@ -122,6 +123,14 @@ submit_alignment:
 submit_call:
 	echo $(FPKM_GENES_ANALYSIS_FILES) | sed 's/ /\n/g' | \
 		$(DQSUB) --mem 40G --ppn 4 --array xargs make
+
+# Kallisto submission rules
+submit_kallisto_index:
+	$(DQSUB) --mem 40G --ppn 8 make kallisto_index
+
+submit_kallisto_call:
+	echo $(KALLISTO_ANALYSIS_FILES) | sed 's/ /\n/g' | \
+		$(DQSUB) --mem 40G --ppn 8 --array xargs make
 
 
 ifdef USE_TRINITY
@@ -300,6 +309,46 @@ $(PROTEIN_ALIGNMENT_FASTA): $(PROTEIN_ALIGNMENT_FASTA).gz
 	$(GZIP) -dc $< > $@
 endif
 
+### Kallisto rules
+
+### Kallisto indexes
+
+KALLISTO_INDEX?=$(REFERENCE_DIR)$(ALIGNMENT_SPECIES)_kallisto.idx
+KALLISTO_INDEX_INFO?=$(REFERENCE_DIR)$(ALIGNMENT_SPECIES)_kallisto_info.txt
+kallisto_index: $(KALLISTO_INDEX) $(KALLISTO_INDEX_INFO)
+
+$(KALLISTO_INDEX): $(CDNA_FASTA).gz
+	$(MODULE) load kallisto ; \
+	kallisto index --threads $(CORES) --index $@ $(CDNA_FASTA).gz
+
+$(KALLISTO_INDEX_INFO): $(CDNA_FASTA).gz
+	gzip -dc $<|grep '^>'|sed 's/^>//' > $@
+
+### Kalliso per-sample information
+ifeq ($(NREADS),1)
+KALLISTO_ANALYSIS_FILES?=$(patsubst %.fastq.gz,%_kallisto.txt,$(FASTQ_FILES))
+KALLISTO_QUANT_ARGS?=--single --bias --bootstrap-samples=200
+else
+KALLISTO_ANALYSIS_FILES?=$(patsubst %_1.fastq.gz,%_kallisto.txt,$(filter %_1.fastq.gz,$(FASTQ_FILES)))
+KALLISTO_QUANT_ARGS?=--fr-stranded --bias --bootstrap-samples=200
+endif
+
+kallisto_call: $(KALLISTO_ANALYSIS_FILES)
+
+ifeq ($(NREADS),1)
+$(KALLISTO_ANALYSIS_FILES): %_kallisto.txt: %_trimmed.fastq.gz $(KALLISTO_INDEX)
+else
+$(KALLISTO_ANALYSIS_FILES): %_kallisto.txt: %_1_trimmed.fastq.gz %_2_trimmed.fastq.gz $(KALLISTO_INDEX)
+endif
+	$(MODULE) load kallisto ; \
+	kallisto quant --index $(KALLISTO_INDEX) \
+		--threads $(CORES) \
+		--output-dir $*_kallisto \
+		$(KALLISTO_QUANT_ARGS) \
+		$(if $(filter 1,$(NREADS)),$<,$(wordlist 1,2,$^));
+	ln -sf $*_kallisto/abundance.tsv $@;
+
+
 ## this rule generates bam indexes in case you need to subset the bam
 %.bam.bai: %.bam
 	$(MODULE) load samtools; \
@@ -332,6 +381,9 @@ $(GTF).gz:
 	mkdir -p $(dir $@)
 	rsync -avP "rsync://ftp.ensembl.org/ensembl/pub/release-$(ENSEMBL_RELEASE)/gtf/$(ALIGNMENT_SPECIES)/$(notdir $(GTF)).gz" $@
 
+$(CDNA_FASTA).gz:
+	mkdir -p $(dir $@)
+	rsync -avP "rsync://ftp.ensembl.org/ensembl/pub/release-$(ENSEMBL_RELEASE)/fasta/$(ALIGNMENT_SPECIES)/cdna/$(notdir $(CDNA_FASTA)).gz" $@
 
 ## this file contains a variable that describes how to connect to the
 ## cluster host where I ran the analyses and will retreive them onto
@@ -344,6 +396,10 @@ get_results:
 		--include '**_isoforms.fpkm_tracking' \
 		--include '**_star/Log.final.out' \
 		--include '**_star/ReadsPerGene.out.tab' \
+		--include '**_kallisto/abundance.tsv' \
+		--include '**_kallisto/run_info.json' \
+		--include '**_kallisto.txt' \
+        --include '**_kallisto_info.txt' \
 		--include '**trinity_diamond.txt' \
 		--include '**_trinity_align_rsem_isoforms.txt' \
         --include '**_fastqc.html' \
