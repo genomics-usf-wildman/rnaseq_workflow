@@ -319,7 +319,7 @@ kallisto_index: $(KALLISTO_INDEX) $(KALLISTO_INDEX_INFO)
 
 $(KALLISTO_INDEX): $(CDNA_FASTA).gz
 	$(MODULE) load kallisto ; \
-	kallisto index --threads $(CORES) --index $@ $(CDNA_FASTA).gz
+	kallisto index --index $@ $(CDNA_FASTA).gz
 
 $(KALLISTO_INDEX_INFO): $(CDNA_FASTA).gz
 	gzip -dc $<|grep '^>'|sed 's/^>//' > $@
