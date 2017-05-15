@@ -85,3 +85,24 @@ To call the alignment using cufflinks:
 
 `make submit_call`
 
+## Using [Kallisto](https://pachterlab.github.io/kallisto/)
+
+If you wish to use [kallisto](https://pachterlab.github.io/kallisto/),
+you need to first build the kallisto index, and then quantify each of the samples.
+
+### Build kallisto index
+
+To build the kallisto index, run:
+
+`make submit_kallisto_index`
+
+which will build the kallisto index
+
+### Quantify using kallisto
+
+To quantify all of the samples using kallisto, run:
+
+`make submit_kallisto_call`
+
+which will produce a kallisto.txt symlink to the `abundances.tsv` file
+from kallisto for each sample.
