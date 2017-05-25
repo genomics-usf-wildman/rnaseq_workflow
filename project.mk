@@ -27,14 +27,20 @@ FASTQ_FILES=file1_1.fastq.gz file1_2.fastq.gz file2_1.fastq.gz file2_2.fastq.gz
 ## The species to align it to; usually the same as $(SPECIES)
 # ALIGNMENT_SPECIES=$(SPECIES)
 
-## GTF and FASTA from Ensembl
-# GTF=$(REFERENCE_DIR)Homo_sapiens.GRCh38.$(ENSEMBL_RELEASE).gtf
-# FASTA=$(REFERENCE_DIR)Homo_sapiens.GRCh38.dna.toplevel.fa
+## The species name in ensembl (usually the same as $(SPECIES) with
+## the first letter capitalized)
+# ENSEMBL_SPECIES=Homo_sapiens
+## The name of the genome in ensembl (for humans, this is GRCh38)
+# ENSEMBL_GENOME=GRCh38
 
 ## if you were using mouse, this would be
 # SPECIES=mus_musculus
-# GTF=$(REFERENCE_DIR)Mus_musculus.GRCm38.$(ENSEMBL_RELEASE).gtf
-# FASTA=$(REFERENCE_DIR)Mus_musculus.GRCm38.dna.toplevel.fa
+# ENSEMBL_SPECIES=Mus_musculus
+# ENSEMBL_GENOME=GRCm38
+
+## if you need to do something more complicated, you can directly
+## specify the GTF, FASTA, CDNA_FASTA, and NCRNA_FASTA file names
+## instead of building them from species, genome, and release.
 
 ### in some cases (more recent mouse genomes) cufflinks cannot handle
 ### certain features in the GTF file, and you may need to fix the GTF
@@ -42,11 +48,12 @@ FASTQ_FILES=file1_1.fastq.gz file1_2.fastq.gz file2_1.fastq.gz file2_2.fastq.gz
 ### https://github.com/cole-trapnell-lab/cufflinks/issues/77 for the
 ### issue which brought this up. (Hopefully fixed in cufflinks
 ### versions newer than 2.2.1
-# CUFFLINKS_GTF=$(REFERENCE_DIR)Mus_musculus.GRCm38.$(ENSEMBL_RELEASE)_fixed.gtf
+# CUFFLINKS_GTF=$(REFERENCE_DIR)$(ENSEMBL_SPECIES).$(ENSEMBL_GENOME).$(ENSEMBL_RELEASE)_fixed.gtf
 # $(CUFFLINKS_GTF): $(GTF)
 # 	grep -v '\tSelenocysteine\t' $^ > $@
 
-## The ensembl release to use
+## The ensembl release to use (new releases of this workflow will use
+## newer revisions, so specify it.
 # ENSEMBL_RELEASE=84
 
 ## Whether to strip out patches or not; probably only useful for Homo
