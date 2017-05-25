@@ -26,9 +26,12 @@ ALIGNMENT_SPECIES?=$(SPECIES)
 
 REFERENCE_DIR?=
 ENSEMBL_RELEASE?=84
-GTF?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.$(ENSEMBL_RELEASE).gtf
-FASTA?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.dna.toplevel.fa
-CDNA_FASTA?=$(REFERENCE_DIR)Homo_sapiens.GRCh38.cdna.all.fa
+ENSEMBL_SPECIES?=Homo_sapiens
+ENSEMBL_GENOME?=GRCh38
+GTF?=$(REFERENCE_DIR)$(ENSEMBL_SPECIES).$(ENSEMBL_GENOME).$(ENSEMBL_RELEASE).gtf
+FASTA?=$(REFERENCE_DIR)$(ENSEMBL_SPECIES).$(ENSEMBL_GENOME).dna.toplevel.fa
+CDNA_FASTA?=$(REFERENCE_DIR)$(ENSEMBL_SPECIES).$(ENSEMBL_GENOME).cdna.all.fa
+NCRNA_FASTA?=$(REFERENCE_DIR)$(ENSEMBL_SPECIES).$(ENSEMBL_GENOME).ncrna.fa
 ### in some cases, cufflinks can't handle a "real" GTF, and needs a
 ### modified one. Write the rule to make the modified GTF and then set
 ### CUFFLINKS_GTF in that case.
@@ -36,7 +39,7 @@ CUFFLINKS_GTF?=$(GTF)
 
 STAR_INDEX_DIR?=$(REFERENCE_DIR)$(SPECIES)_star/
 
-REMOTE_FILES=$(FASTA).gz $(GTF).gz $(CDNA_FASTA).gz
+REMOTE_FILES=$(FASTA).gz $(GTF).gz $(CDNA_FASTA).gz $(NCRNA_FASTA).gz
 
 
 TRIMMED_FASTQ_FILES=$(patsubst %.fastq.gz,%_trimmed.fastq.gz,$(FASTQ_FILES))
@@ -317,12 +320,12 @@ KALLISTO_INDEX?=$(REFERENCE_DIR)$(ALIGNMENT_SPECIES)_kallisto.idx
 KALLISTO_INDEX_INFO?=$(REFERENCE_DIR)$(ALIGNMENT_SPECIES)_kallisto_info.txt
 kallisto_index: $(KALLISTO_INDEX) $(KALLISTO_INDEX_INFO)
 
-$(KALLISTO_INDEX): $(CDNA_FASTA).gz
+$(KALLISTO_INDEX): $(CDNA_FASTA).gz $(NCRNA_FASTA).gz
 	$(MODULE) load kallisto ; \
-	kallisto index --index $@ $(CDNA_FASTA).gz
+	kallisto index --index $@ $(CDNA_FASTA).gz $(NCRNA_FASTA).gz
 
-$(KALLISTO_INDEX_INFO): $(CDNA_FASTA).gz
-	gzip -dc $<|grep '^>'|sed 's/^>//' > $@
+$(KALLISTO_INDEX_INFO): $(CDNA_FASTA).gz $(NCRNA_FASTA).gz
+	gzip -dc $^|grep '^>'|sed 's/^>//' > $@
 
 ### Kalliso per-sample information
 ifeq ($(NREADS),1)
@@ -384,6 +387,10 @@ $(GTF).gz:
 $(CDNA_FASTA).gz:
 	mkdir -p $(dir $@)
 	rsync -avP "rsync://ftp.ensembl.org/ensembl/pub/release-$(ENSEMBL_RELEASE)/fasta/$(ALIGNMENT_SPECIES)/cdna/$(notdir $(CDNA_FASTA)).gz" $@
+
+$(NCRNA_FASTA).gz:
+	mkdir -p $(dir $@)
+	rsync -avP "rsync://ftp.ensembl.org/ensembl/pub/release-$(ENSEMBL_RELEASE)/fasta/$(ALIGNMENT_SPECIES)/ncrna/$(notdir $(NCRNA_FASTA)).gz" $@
 
 ## this file contains a variable that describes how to connect to the
 ## cluster host where I ran the analyses and will retreive them onto
