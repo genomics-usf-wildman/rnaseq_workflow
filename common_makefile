@@ -233,7 +233,7 @@ $(TRIMMED_FASTQ_FILES): %_trimmed.fastq.gz: %.fastq.gz
 	cp -l $< $@
 else
 $(TRIMMED_FASTQ_FILES): %_trimmed.fastq.gz: %.fastq.gz
-	$(MODULE) load trimmomatic/0.36; \
+	$(MODULE) load trimmomatic; \
 	$(TRIMMOMATIC_SE) \
 		-threads $(CORES) \
 		$(TRIMMOMATIC_QUALITY) \
@@ -247,7 +247,7 @@ ifdef NOTRIM
 	cp -l $(wordlist 2,2,$^) $(*)_2_trimmed.fastq.gz
 else
 %_1_trimmed.fastq.gz %_2_trimmed.fastq.gz: %_1.fastq.gz %_2.fastq.gz
-	$(MODULE) load trimmomatic/0.36; \
+	$(MODULE) load trimmomatic; \
 	$(TRIMMOMATIC_PE) \
 		-threads $(CORES) \
 		$(TRIMMOMATIC_QUALITY) \
