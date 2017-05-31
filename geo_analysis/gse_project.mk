@@ -35,6 +35,8 @@ submit_alignment: $(patsubst %,%-submit_alignment,$(SRX_FILES))
 
 submit_call: $(patsubst %,%-submit_call,$(SRX_FILES))
 
+submit_kallisto_call: $(patsubst %,%-submit_kallisto_call,$(SRX_FILES))
+
 $(patsubst %,%-submit_trimmed_fastqc,$(SRX_FILES)): %-submit_trimmed_fastqc:
 	+make -C $* submit_trimmed_fastqc
 
@@ -43,6 +45,9 @@ $(patsubst %,%-submit_alignment,$(SRX_FILES)): %-submit_alignment:
 
 $(patsubst %,%-submit_call,$(SRX_FILES)): %-submit_call:
 	+make -C $* submit_call
+
+$(patsubst %,%-submit_kallisto_call,$(SRX_FILES)): %-submit_kallisto_call:
+	+make -C $* submit_kallisto_call
 
 get_srr: $(patsubst %,%-get_srr,$(SRX_FILES))
 
