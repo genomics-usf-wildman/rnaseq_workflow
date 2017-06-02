@@ -65,6 +65,10 @@ get_results:
 		--include '**_isoforms.fpkm_tracking' \
 		--include '**_star/Log.final.out' \
 		--include '**_star/ReadsPerGene.out.tab' \
+		--include '**_kallisto/abundance.tsv' \
+		--include '**_kallisto/run_info.json' \
+		--include '**_kallisto.txt' \
+		--include '**_kallisto_info.txt' \
 		--include '**trinity_diamond.txt' \
 		--include '**_trinity_align_rsem_isoforms.txt' \
         --include '**_fastqc.html' \
