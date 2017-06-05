@@ -138,7 +138,7 @@ submit_kallisto_call:
 # bigwig rules
 submit_bigwig:
 	echo $(STAR_ALIGNMENT_FILES) | sed 's/.bam /.bw\n/g' | \
-		$(DQSUB) --mem 60G --ppn 8 --array xargs make
+		$(DQSUB) --mem 80G --ppn 8 --array xargs make
 
 ifdef USE_TRINITY
 %_genes.fpkm_tracking %_isoforms.fpkm_tracking %_skipped.gtf %_transcripts.gtf: %_star.bam
