@@ -362,9 +362,10 @@ endif
 	samtools index $<
 
 ## this rule generates bigwig coverage files from bams (in case you need them)
+BAM_COVERAGE_OPTIONS?=--skipNAs --binSize 200
 %.bw: %.bam %.bam.bai
 	$(MODULE) load deepTools; \
-	bamCoverage -p $(CORES) --skipNAs --bam $< --outFileName $@ --outFileFormat bigwig
+	bamCoverage -p $(CORES) -$(BAM_COVERAGE_OPTIONS) --bam $< --outFileName $@ --outFileFormat bigwig
 
 $(GTF): $(GTF).gz
 	$(GZIP) -dc $< > $@
@@ -412,6 +413,8 @@ get_results:
 		--include '**_isoforms.fpkm_tracking' \
 		--include '**_star/Log.final.out' \
 		--include '**_star/ReadsPerGene.out.tab' \
+		--include '**_star/*.bg' \
+		--include '**_star.bw' \
 		--include '**_kallisto/abundance.tsv' \
 		--include '**_kallisto/run_info.json' \
 		--include '**_kallisto.txt' \
