@@ -135,6 +135,10 @@ submit_kallisto_call:
 	echo $(KALLISTO_ANALYSIS_FILES) | sed 's/ /\n/g' | \
 		$(DQSUB) --mem 40G --ppn 8 --array xargs make
 
+# bigwig rules
+submit_bigwig:
+	echo $(STAR_ALIGNMENT_FILES) | sed 's/.bam /.bw\n/g' | \
+		$(DQSUB) --mem 60G --ppn 8 --array xargs make
 
 ifdef USE_TRINITY
 %_genes.fpkm_tracking %_isoforms.fpkm_tracking %_skipped.gtf %_transcripts.gtf: %_star.bam
@@ -356,6 +360,11 @@ endif
 %.bam.bai: %.bam
 	$(MODULE) load samtools; \
 	samtools index $<
+
+## this rule generates bigwig coverage files from bams (in case you need them)
+%.bw: %.bam %.bam.bai
+	$(MODULE) load deepTools; \
+	bamCoverage -p $(CORES) --skipNAs --bam $< --outFileName $@ --outFileFormat bigwig
 
 $(GTF): $(GTF).gz
 	$(GZIP) -dc $< > $@
