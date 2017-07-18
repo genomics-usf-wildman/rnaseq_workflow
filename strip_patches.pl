@@ -127,10 +127,11 @@ my $output_current_fasta = 0;
 while (<$fasta>) {
     if (/^>\s*(\S+)/) {
         my $chr = $1;
-        print STDERR "chr is $chr\n";
+        print STDERR "chr is $chr ";
 
         if ($options{gtf_chr_only} and not exists $valid_chr{$chr}) {
             $output_current_fasta = 0;
+            print STDERR "skipped\n";
             next;
         }
         if (length $options{valid_chr}) {
@@ -141,8 +142,12 @@ while (<$fasta>) {
             }
         } else {
            $output_current_fasta = 1;
+       }
+        if ($output_current_fasta) {
+            print STDERR "kept\n";
+        } else {
+            print STDERR "skipped\n"
         }
-
     }
     next unless $output_current_fasta;
     print {$fasta_out} $_;
