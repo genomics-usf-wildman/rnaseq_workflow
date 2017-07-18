@@ -67,3 +67,8 @@ FASTQ_FILES=file1_1.fastq.gz file1_2.fastq.gz file2_1.fastq.gz file2_2.fastq.gz
 
 # If you do not wish to trim, uncomment the following
 # NOTRIM=1
+
+## To change the trimming options, create a fasta file which contains
+## the appropriate primers, and point trimmomatic at it. Something
+## like this will work:
+# TRIMMOMATIC_OPTIONS=ILLUMINACLIP:./your_fasta_file.fa:2:20:5 MINLEN:10
