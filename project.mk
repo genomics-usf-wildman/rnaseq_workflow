@@ -60,6 +60,7 @@ FASTQ_FILES=file1_1.fastq.gz file1_2.fastq.gz file2_1.fastq.gz file2_2.fastq.gz
 ## Sapiens
 # STRIP_PATCHES=1
 # STRIP_PATCHES_SCRIPT=./rnaseq_workflow/strip_patches.pl
+# STRIP_PATCHES_OPTIONS=--valid-chr='^(?:chr)?[12]?\d|MT|[XY]$$'
 
 # Options for cufflinks; --max-bundle-frags avoids HIDATA errors
 # CUFFLINKS_OPTIONS=--max-bundle-frags=400000000
