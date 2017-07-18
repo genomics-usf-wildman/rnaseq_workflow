@@ -72,3 +72,7 @@ FASTQ_FILES=file1_1.fastq.gz file1_2.fastq.gz file2_1.fastq.gz file2_2.fastq.gz
 ## the appropriate primers, and point trimmomatic at it. Something
 ## like this will work:
 # TRIMMOMATIC_OPTIONS=ILLUMINACLIP:./your_fasta_file.fa:2:20:5 MINLEN:10
+
+## If you are using kallisto, and these are single-end reads, you'll
+## want something like the following:
+# KALLISTO_QUANT_ARGS=--single --bias --bootstrap-samples=200 --fragment-length 21 --sd 5
