@@ -217,8 +217,8 @@ endif
 	ln $(*)_star/Aligned.sortedByCoord.out.bam $@ -sf
 
 # This is the directory where the trimmomatic adapters are kept
-ifdef MODULEPATH
-TRIMMOMATIC_FASTA_PATH?=/home/apps/trimmomatic/trimmomatic-0.33/adapters
+ifdef EBROOTTRIMMOMATIC
+TRIMMOMATIC_FASTA_PATH?=$(EBROOTTRIMMOMATIC)/adapters
 TRIMMOMATIC_PE=java org.usadellab.trimmomatic.TrimmomaticPE
 TRIMMOMATIC_SE=java org.usadellab.trimmomatic.TrimmomaticSE
 else
@@ -237,7 +237,7 @@ $(TRIMMED_FASTQ_FILES): %_trimmed.fastq.gz: %.fastq.gz
 	cp -l $< $@
 else
 $(TRIMMED_FASTQ_FILES): %_trimmed.fastq.gz: %.fastq.gz
-	$(MODULE) load trimmomatic; \
+	$(MODULE) load Trimmomatic; \
 	$(TRIMMOMATIC_SE) \
 		-threads $(CORES) \
 		$(TRIMMOMATIC_QUALITY) \
@@ -251,7 +251,7 @@ ifdef NOTRIM
 	cp -l $(wordlist 2,2,$^) $(*)_2_trimmed.fastq.gz
 else
 %_1_trimmed.fastq.gz %_2_trimmed.fastq.gz: %_1.fastq.gz %_2.fastq.gz
-	$(MODULE) load trimmomatic; \
+	$(MODULE) load Trimmomatic; \
 	$(TRIMMOMATIC_PE) \
 		-threads $(CORES) \
 		$(TRIMMOMATIC_QUALITY) \
