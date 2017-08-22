@@ -217,10 +217,10 @@ endif
 	ln $(*)_star/Aligned.sortedByCoord.out.bam $@ -sf
 
 # This is the directory where the trimmomatic adapters are kept
-ifdef EBROOTTRIMMOMATIC
+ifdef MODULEPATH
 TRIMMOMATIC_FASTA_PATH?=$(EBROOTTRIMMOMATIC)/adapters
-TRIMMOMATIC_PE=java org.usadellab.trimmomatic.TrimmomaticPE
-TRIMMOMATIC_SE=java org.usadellab.trimmomatic.TrimmomaticSE
+TRIMMOMATIC_PE=java -jar $(EBROOTTRIMMOMATIC)/trimmomatic-0.36.jar TrimmomaticPE
+TRIMMOMATIC_SE=java -jar $(EBROOTTRIMMOMATIC)/trimmomatic-0.36.jar TrimmomaticSE
 else
 TRIMMOMATIC_PE=TrimmomaticPE
 TRIMMOMATIC_SE=TrimmomaticSE
