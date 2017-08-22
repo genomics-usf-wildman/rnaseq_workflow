@@ -219,8 +219,8 @@ endif
 # This is the directory where the trimmomatic adapters are kept
 ifdef MODULEPATH
 TRIMMOMATIC_FASTA_PATH?=$(EBROOTTRIMMOMATIC)/adapters
-TRIMMOMATIC_PE=java -jar $(EBROOTTRIMMOMATIC)/trimmomatic-0.36.jar TrimmomaticPE
-TRIMMOMATIC_SE=java -jar $(EBROOTTRIMMOMATIC)/trimmomatic-0.36.jar TrimmomaticSE
+TRIMMOMATIC_PE=java -jar $$EBROOTTRIMMOMATIC/trimmomatic-0.36.jar PE
+TRIMMOMATIC_SE=java -jar $$EBROOTTRIMMOMATIC/trimmomatic-0.36.jar SE
 else
 TRIMMOMATIC_PE=TrimmomaticPE
 TRIMMOMATIC_SE=TrimmomaticSE
