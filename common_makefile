@@ -163,7 +163,7 @@ else
 endif
 
 $(FASTQC_ANALYSIS_FILES): %_fastqc.html: %.fastq.gz
-	$(MODULE) load fastqc/0.11.2; \
+	$(MODULE) load FastQC; \
 	fastqc -t $(CORES) $<
 
 ifdef USE_TRINITY
