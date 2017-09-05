@@ -143,7 +143,7 @@ submit_bigwig:
 ifdef USE_TRINITY
 %_genes.fpkm_tracking %_isoforms.fpkm_tracking %_skipped.gtf %_transcripts.gtf: %_star.bam
 	mkdir -p $(*)_cufflinks;
-	$(MODULE) load cufflinks/2.2.1; \
+	$(MODULE) load Cufflinks \
 	cufflinks -o $(*)_cufflinks $(CUFFLINKS_OPTIONS) \
 		-p $(CORES) $<
 	for file in genes.fpkm_tracking isoforms.fpkm_tracking skipped.gtf transcripts.gtf; do \
@@ -154,7 +154,7 @@ else
 %_genes.fpkm_tracking %_isoforms.fpkm_tracking %_skipped.gtf %_transcripts.gtf: %_star.bam \
 	$(CUFFLINKS_GTF)
 	mkdir -p $(*)_cufflinks;
-	$(MODULE) load cufflinks/2.2.1; \
+	$(MODULE) load Cufflinks; \
 	cufflinks -o $(*)_cufflinks $(CUFFLINKS_OPTIONS) -p $(CORES) -G $(wordlist 2,2,$^) $<
 	for file in genes.fpkm_tracking isoforms.fpkm_tracking skipped.gtf transcripts.gtf; do \
 		mv $(*)_cufflinks/$${file} $(*)_$${file}; \
